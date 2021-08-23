@@ -63,7 +63,7 @@ var (
 	# Verify the image signature and identity via exposed registry route
 	oc adm verify-image-signature sha256:c841e9b64e4579bd56c794bdd7c36e1c257110fd2404bebbb8b613e4935228c4 \
 			--expected-identity=registry.local:5000/foo/bar:v1 \
-			--registry-url=docker-registry.foo.com
+			--registry-url=registry.foo.com
 
 	# Remove all signature verifications from the image
 	oc adm verify-image-signature sha256:c841e9b64e4579bd56c794bdd7c36e1c257110fd2404bebbb8b613e4935228c4 --remove-all
@@ -111,7 +111,7 @@ func NewCmdVerifyImageSignature(f kcmdutil.Factory, streams genericclioptions.IO
 		},
 	}
 
-	cmd.Flags().StringVar(&o.ExpectedIdentity, "expected-identity", o.ExpectedIdentity, "An expected image docker reference to verify (required).")
+	cmd.Flags().StringVar(&o.ExpectedIdentity, "expected-identity", o.ExpectedIdentity, "An expected image reference to verify (required).")
 	cmd.Flags().BoolVar(&o.Save, "save", o.Save, "If true, the result of the verification will be saved to an image object.")
 	cmd.Flags().BoolVar(&o.RemoveAll, "remove-all", o.RemoveAll, "If set, all signature verifications will be removed from the given image.")
 	cmd.Flags().StringVar(&o.PublicKeyFilename, "public-key", o.PublicKeyFilename, fmt.Sprintf("A path to a public GPG key to be used for verification. (defaults to %q)", o.PublicKeyFilename))
@@ -319,10 +319,10 @@ func (t dockerTransport) ValidatePolicyConfigurationScope(scope string) error {
 // dummyDockerReference is containers/image/docker.Reference, except that only provides identity information.
 type dummyDockerReference struct{ ref reference.Named }
 
-// parseDockerReference converts a string, which should not start with the ImageTransport.Name prefix, into an Docker ImageReference.
+// parseDockerReference converts a string, which should not start with the ImageTransport.Name prefix, into an ImageReference.
 func parseDockerReference(refString string) (sigtypes.ImageReference, error) {
 	if !strings.HasPrefix(refString, "//") {
-		return nil, fmt.Errorf("docker: image reference %s does not start with //", refString)
+		return nil, fmt.Errorf("OCI: image reference %s does not start with //", refString)
 	}
 	ref, err := reference.ParseNormalizedNamed(strings.TrimPrefix(refString, "//"))
 	if err != nil {
@@ -331,7 +331,7 @@ func parseDockerReference(refString string) (sigtypes.ImageReference, error) {
 	ref = reference.TagNameOnly(ref)
 
 	if reference.IsNameOnly(ref) {
-		return nil, fmt.Errorf("Docker reference %s has neither a tag nor a digest", reference.FamiliarString(ref))
+		return nil, fmt.Errorf("OCI reference %s has neither a tag nor a digest", reference.FamiliarString(ref))
 	}
 	// A github.com/distribution/reference value can have a tag and a digest at the same time!
 	// The docker/distribution API does not really support that (we can’t ask for an image with a specific
@@ -341,7 +341,7 @@ func parseDockerReference(refString string) (sigtypes.ImageReference, error) {
 	_, isTagged := ref.(reference.NamedTagged)
 	_, isDigested := ref.(reference.Canonical)
 	if isTagged && isDigested {
-		return nil, fmt.Errorf("Docker references with both a tag and digest are currently not supported")
+		return nil, fmt.Errorf("OCI references with both a tag and digest are currently not supported")
 	}
 	return dummyDockerReference{
 		ref: ref,

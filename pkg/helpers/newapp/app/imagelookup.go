@@ -28,7 +28,7 @@ type DockerClient interface {
 	InspectImage(name string) (*docker.Image, error)
 }
 
-// DockerClientSearcher finds local docker images locally that match a search value
+// DockerClientSearcher finds local images locally that match a search value
 type DockerClientSearcher struct {
 	Client DockerClient
 
@@ -46,7 +46,7 @@ type DockerClientSearcher struct {
 }
 
 func (r DockerClientSearcher) Type() string {
-	return "local docker images"
+	return "local images"
 }
 
 // Search searches all images in local docker server for images that match terms
@@ -60,7 +60,7 @@ func (r DockerClientSearcher) Search(precise bool, terms ...string) (ComponentMa
 		)
 		switch term {
 		case "__dockerimage_fail":
-			errs = append(errs, fmt.Errorf("unable to find the specified docker image: %s", term))
+			errs = append(errs, fmt.Errorf("unable to find the specified image: %s", term))
 			continue
 		case "scratch":
 			componentMatches = append(componentMatches, &ComponentMatch{
@@ -119,7 +119,7 @@ func (r DockerClientSearcher) Search(precise bool, terms ...string) (ComponentMa
 				if tags := matchTag(image, term, ref.Registry, ref.Namespace, ref.Name, ref.Tag); len(tags) > 0 {
 					for i := range tags {
 						tags[i].LocalOnly = true
-						klog.V(5).Infof("Found local docker image match %q with score %f", tags[i].Value, tags[i].Score)
+						klog.V(5).Infof("Found local image match %q with score %f", tags[i].Value, tags[i].Score)
 					}
 					termMatches = append(termMatches, tags...)
 				}

@@ -707,7 +707,7 @@ func DescribeImage(image *imagev1.Image, imageName string) (string, error) {
 		if len(imageName) > 0 {
 			formatString(out, "Image Name", imageName)
 		}
-		formatString(out, "Docker Image", image.DockerImageReference)
+		formatString(out, "Image", image.DockerImageReference)
 		formatString(out, "Name", image.Name)
 		if !image.CreationTimestamp.IsZero() {
 			formatTime(out, "Created", image.CreationTimestamp.Time)
